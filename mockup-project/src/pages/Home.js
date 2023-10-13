@@ -7,7 +7,7 @@ import "../pages/Home.css";
 import modalBg from "../images/modal-bg.png";
 import deleteIcon from "../images/delete-icon.png";
 import userImg from "../images/user-img.png";
-import { addCustomer, deleteCustomer, editCustomer } from "../redux/Customers"; 
+import { addCustomer, deleteCustomer, editCustomer } from "../redux/Customers";
 import sortIcon from "../images/sort-icon-3.png";
 import sortUp from "../images/sort-up-2.png";
 import editIcon from "../images/edit-green-icon-4.png";
@@ -17,53 +17,43 @@ const Home = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [apiData, setApiData] = useState([]);
+  const [allCustomers, setAllCustomers] = useState([]);
+  const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [customerToEdit, setCustomerToEdit] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
+
   const dispatch = useDispatch();
   const customers = useSelector((state) => state.customers.customers);
-  const [allCustomers, setAllCustomers] = useState([]);
-  const [customerToDelete, setCustomerToDelete] = useState(null); 
-  const [customerToEdit, setCustomerToEdit] = useState(null);
-  const [sortOrder, setSortOrder] = useState("asc"); 
 
   useEffect(() => {
     fetchData();
-  }, []);
-
-  useEffect(() => {
     const savedCustomersJSON = localStorage.getItem("newCustomers");
-    console.log(savedCustomersJSON, "ssss");
-    if (savedCustomersJSON) {
-      const savedCustomers = JSON.parse(savedCustomersJSON);
-      setAllCustomers([...apiData, ...customers, ...savedCustomers]);
-    } else {
-      setAllCustomers([...apiData, ...customers]);
-    }
+    const savedCustomers = savedCustomersJSON
+      ? JSON.parse(savedCustomersJSON)
+      : [];
+    setAllCustomers([...apiData, ...customers, ...savedCustomers]);
   }, [apiData, customers]);
 
-
+  // Creating New Customer
   const onFinish = (values) => {
     const newId = allCustomers.length + 1;
-
     const newCustomer = {
       id: newId,
       first_name: values.username,
-      last_name: "",
       email: values.Email,
       avatar: userImg,
     };
-
     const savedCustomersJSON = localStorage.getItem("newCustomers");
-    let savedCustomers = [];
-
-    if (savedCustomersJSON) {
-      savedCustomers = JSON.parse(savedCustomersJSON);
-    }
+    let savedCustomers = savedCustomersJSON
+      ? JSON.parse(savedCustomersJSON)
+      : [];
     savedCustomers.push(newCustomer);
     localStorage.setItem("newCustomers", JSON.stringify(savedCustomers));
-
     dispatch(addCustomer(newCustomer));
     setIsModalOpen(false);
   };
 
+  // fetching api data
   const fetchData = async () => {
     try {
       const response = await axios.get("https://reqres.in/api/users?page=1");
@@ -74,16 +64,12 @@ const Home = () => {
     }
   };
 
-  {/* Sorting Function  */}
+  // Sorting Function
+  const sortedCustomers = allCustomers
+    .slice()
+    .sort((a, b) => (sortOrder === "asc" ? a.id - b.id : b.id - a.id));
 
-  const sortedCustomers = allCustomers.slice().sort((a, b) => {
-    if (sortOrder === "asc") {
-      return a.id - b.id;
-    } else {
-      return b.id - a.id;
-    }
-  });
-
+  // delete Functions
   const deleteOpen = (id) => {
     setCustomerToDelete(id);
     setIsDeleteModalOpen(true);
@@ -99,20 +85,16 @@ const Home = () => {
         );
         localStorage.setItem("newCustomers", JSON.stringify(savedCustomers));
       }
-
       dispatch(deleteCustomer(customerToDelete));
       setIsDeleteModalOpen(false);
     }
   };
 
-  const deleteItem = (id) => {
-    deleteOpen(id);
-  };
+  const deleteItem = (id) => deleteOpen(id);
 
-  const deleteCancle = () => {
-    setIsDeleteModalOpen(false);
-  };
+  const deleteCancle = () => setIsDeleteModalOpen(false);
 
+  // Edit Functions
   const editOpen = (customer) => {
     setCustomerToEdit(customer);
     setIsEditModalOpen(true);
@@ -125,13 +107,11 @@ const Home = () => {
         first_name: values.username,
         email: values.Email,
       };
-
       setAllCustomers((prevCustomers) =>
         prevCustomers.map((customer) =>
           customer.id === editedCustomer.id ? editedCustomer : customer
         )
       );
-
       const savedCustomersJSON = localStorage.getItem("newCustomers");
       if (savedCustomersJSON) {
         let savedCustomers = JSON.parse(savedCustomersJSON);
@@ -140,7 +120,6 @@ const Home = () => {
         );
         localStorage.setItem("newCustomers", JSON.stringify(savedCustomers));
       }
-
       setIsEditModalOpen(false);
     }
   };
@@ -169,8 +148,7 @@ const Home = () => {
             background: `linear-gradient(135deg, #57BC90, #004B40)`,
           }}
         >
-          {/* <PlusOutlined /> */}
-          <span className=""> + Add New Customer</span>
+          <span> + Add New Customer</span>
         </Button>
       </div>
 
@@ -186,7 +164,7 @@ const Home = () => {
       >
         <div className="mt-5 relative flex justify-center items-center">
           <img src={modalBg} className="absolute w-12/12" />
-          <p className="relative text-white text-2xl top-4">Add New Customer</p>
+          <p className="relative text-white text-2xl top-4 ">Add New Customer</p>
         </div>
         <div className="mt-16 ml-5">
           <Form
@@ -298,10 +276,6 @@ const Home = () => {
             }}
             onFinish={onEditFinish}
             autoComplete="off"
-            initialValues={{
-              username: customerToEdit ? customerToEdit.first_name : "",
-              Email: customerToEdit ? customerToEdit.email : "",
-            }}
           >
             <Form.Item
               name="username"
@@ -385,6 +359,7 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Rendering Data */}
       {sortedCustomers.map((customer) => (
         <div
           key={customer.id}
