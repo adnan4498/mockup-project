@@ -1,0 +1,25 @@
+.custom-width-class{
+    width: 780px;
+}
+
+.customer-btn-width{
+    width: 220px;
+}
+
+.custom-modal .ant-modal-content{
+    height: 335px !important;
+    padding: 0px !important;   
+}
+
+.custom-border{
+    border: 1px solid #ececec;
+}
+
+.submit-custom-width{
+    width: 292px;
+}
+
+:where(.css-dev-only-do-not-override-amq5gd).ant-btn-default:not(:disabled):not(.ant-btn-disabled):hover{
+    color: white ;
+    border-color: transparent !important;
+}
